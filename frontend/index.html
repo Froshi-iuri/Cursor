@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Vetericano | CBA Popayán</title>
+    <link rel="stylesheet" href="/css/styles.css" />
+  </head>
+  <body>
+    <header class="header">
+      <div class="brand">
+        <div class="logo" aria-hidden="true">🐾</div>
+        <div>
+          <h1>Vetericano</h1>
+          <p>Centro de Bienestar Animal · Popayán, Cauca</p>
+        </div>
+      </div>
+      <div class="header-actions">
+        <button class="btn" id="btn-nueva">Nueva solicitud</button>
+      </div>
+    </header>
+
+    <main>
+      <section class="kpis" id="kpis" aria-label="Indicadores operativos"></section>
+
+      <section class="toolbar" aria-label="Filtros">
+        <div class="field">
+          <label for="filtro-estado">Estado</label>
+          <select id="filtro-estado">
+            <option value="">Todos</option>
+            <option>RECIBIDA</option>
+            <option>ASIGNADA</option>
+            <option>EN PROCESO</option>
+            <option>ATENDIDA</option>
+            <option>CERRADA</option>
+          </select>
+        </div>
+        <div class="field">
+          <label for="filtro-tipo">Tipo</label>
+          <select id="filtro-tipo">
+            <option value="">Todos</option>
+            <option value="rescate">Rescate</option>
+            <option value="adopcion">Adopción</option>
+            <option value="vacunacion">Vacunación</option>
+            <option value="esterilizacion">Esterilización</option>
+          </select>
+        </div>
+        <div class="field">
+          <label for="filtro-comuna">Comuna</label>
+          <select id="filtro-comuna">
+            <option value="">Todas</option>
+            <option>Comuna 1</option>
+            <option>Comuna 2</option>
+            <option>Comuna 3</option>
+            <option>Comuna 4</option>
+            <option>Comuna 5</option>
+            <option>Comuna 6</option>
+            <option>Comuna 7</option>
+            <option>Comuna 8</option>
+            <option>Comuna 9</option>
+            <option>Zona Rural</option>
+          </select>
+        </div>
+        <button class="btn" id="btn-filtrar">Filtrar</button>
+        <button class="btn secondary" id="btn-limpiar">Limpiar</button>
+      </section>
+
+      <section class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Código</th>
+              <th>Tipo</th>
+              <th>Ciudadano</th>
+              <th>Comuna / Barrio</th>
+              <th>Estado</th>
+              <th>Acciones</th>
+            </tr>
+          </thead>
+          <tbody id="solicitudes-body"></tbody>
+        </table>
+      </section>
+    </main>
+
+    <div class="modal-backdrop" id="modal-estado">
+      <div class="modal" role="dialog" aria-labelledby="titulo-estado">
+        <h2 id="titulo-estado">Gestionar estado</h2>
+        <p>Estado actual: <strong id="estado-actual"></strong></p>
+        <form id="form-estado" class="form-grid">
+          <div class="field full">
+            <label for="estado-nuevo">Siguiente estado</label>
+            <select id="estado-nuevo" name="estado_nuevo" required></select>
+          </div>
+          <div class="field full">
+            <label for="responsable">Responsable</label>
+            <input id="responsable" name="responsable" required placeholder="Médico veterinario o auxiliar CBA" />
+          </div>
+          <div class="field full">
+            <label for="observaciones">Observaciones</label>
+            <textarea id="observaciones" name="observaciones" required placeholder="Justificación del avance"></textarea>
+          </div>
+          <div class="full actions">
+            <button class="btn" type="submit">Guardar transición</button>
+            <button class="btn ghost" type="button" data-close>Cancelar</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <div class="modal-backdrop" id="modal-expediente">
+      <div class="modal" role="dialog" aria-labelledby="titulo-exp">
+        <h2 id="titulo-exp">Expediente / historial</h2>
+        <div id="expediente"></div>
+        <button class="btn secondary" type="button" data-close>Cerrar</button>
+      </div>
+    </div>
+
+    <div class="modal-backdrop" id="modal-nueva">
+      <div class="modal" role="dialog" aria-labelledby="titulo-nueva">
+        <h2 id="titulo-nueva">Registrar solicitud ciudadana</h2>
+        <form id="form-nueva" class="form-grid">
+          <div class="field">
+            <label for="tipo">Tipo</label>
+            <select id="tipo" name="tipo" required>
+              <option value="rescate">Rescate</option>
+              <option value="adopcion">Adopción</option>
+              <option value="vacunacion">Vacunación</option>
+              <option value="esterilizacion">Esterilización</option>
+            </select>
+          </div>
+          <div class="field">
+            <label for="comuna">Comuna</label>
+            <select id="comuna" name="comuna" required>
+              <option>Comuna 1</option>
+              <option>Comuna 2</option>
+              <option>Comuna 3</option>
+              <option>Comuna 4</option>
+              <option>Comuna 5</option>
+              <option>Comuna 6</option>
+              <option>Comuna 7</option>
+              <option>Comuna 8</option>
+              <option>Comuna 9</option>
+              <option>Zona Rural</option>
+            </select>
+          </div>
+          <div class="field">
+            <label for="ciudadano_nombre">Ciudadano</label>
+            <input id="ciudadano_nombre" name="ciudadano_nombre" required />
+          </div>
+          <div class="field">
+            <label for="ciudadano_telefono">Teléfono</label>
+            <input id="ciudadano_telefono" name="ciudadano_telefono" required />
+          </div>
+          <div class="field">
+            <label for="barrio">Barrio</label>
+            <input id="barrio" name="barrio" required placeholder="Ej. La Pamba" />
+          </div>
+          <div class="field">
+            <label for="animal-id">Animal asociado</label>
+            <select id="animal-id" name="animal_id"></select>
+          </div>
+          <div class="field full">
+            <label for="descripcion">Descripción</label>
+            <textarea id="descripcion" name="descripcion" required></textarea>
+          </div>
+          <div class="full actions">
+            <button class="btn" type="submit">Radicar solicitud</button>
+            <button class="btn ghost" type="button" data-close>Cancelar</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <div class="toast-stack" id="toasts"></div>
+    <script type="module" src="/js/app.js"></script>
+  </body>
+</html>
