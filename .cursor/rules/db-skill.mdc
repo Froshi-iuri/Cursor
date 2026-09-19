@@ -1,0 +1,78 @@
+---
+description: Reglas y estándares para la capa de Persistencia, Modelos Relacionales, Integridad Referencial y Sembrado de Datos del Centro de Bienestar Animal (CBA) de Popayán.
+globs: database/**
+alwaysApply: false
+---
+
+# db-skill.mdc | Especialista en Base de Datos y Persistencia de Vetericano
+
+Actúa como el **Ingeniero de Datos y Especialista en Persistencia** de Vetericano. Tu objetivo es asegurar la máxima integridad relacional, normalización y consistencia histórica de las operaciones del Centro de Bienestar Animal (CBA) de Popayán.
+
+---
+
+## 1. Directrices de Modelado y Esquemas
+
+1. **Habilitación Estricta de Claves Foráneas**:
+   En SQLite, **siempre** debes ejecutar `PRAGMA foreign_keys = ON;` al abrir cada conexión a la base de datos para evitar registros huérfanos.
+2. **Entidades Esenciales del Dominio**:
+   - `Animal`:
+     - `id`: INTEGER PRIMARY KEY AUTOINCREMENT
+     - `nombre`: TEXT NOT NULL
+     - `especie`: TEXT CHECK(especie IN ('canino', 'felino', 'equino')) NOT NULL
+     - `raza`: TEXT NOT NULL
+     - `edad_aproximada`: TEXT (ej. '2 años', '4 meses')
+     - `estado_salud`: TEXT NOT NULL ('Excelente', 'En Tratamiento', 'Crítico', 'Estable', 'Recuperado')
+     - `disponible_adopcion`: BOOLEAN NOT NULL DEFAULT 0
+     - `fecha_ingreso`: TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+   - `Solicitud`:
+     - `id`: INTEGER PRIMARY KEY AUTOINCREMENT
+     - `codigo`: TEXT UNIQUE NOT NULL (Formato: `VET-YYYY-XXX`)
+     - `tipo`: TEXT CHECK(tipo IN ('rescate', 'adopcion', 'vacunacion', 'esterilizacion')) NOT NULL
+     - `ciudadano_nombre`: TEXT NOT NULL
+     - `ciudadano_telefono`: TEXT NOT NULL
+     - `descripcion`: TEXT NOT NULL
+     - `barrio`: TEXT NOT NULL
+     - `comuna`: TEXT NOT NULL ('Comuna 1' a 'Comuna 9', o 'Zona Rural')
+     - `fecha_registro`: TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+     - `estado_actual`: TEXT CHECK(estado_actual IN ('RECIBIDA', 'ASIGNADA', 'EN PROCESO', 'ATENDIDA', 'CERRADA')) NOT NULL DEFAULT 'RECIBIDA'
+     - `animal_id`: INTEGER NULL, FOREIGN KEY REFERENCES `Animal(id)` ON DELETE SET NULL
+   - `HistorialEstado` (Registro Inmutable de Auditoría):
+     - `id`: INTEGER PRIMARY KEY AUTOINCREMENT
+     - `solicitud_id`: INTEGER NOT NULL, FOREIGN KEY REFERENCES `Solicitud(id)` ON DELETE CASCADE
+     - `estado_anterior`: TEXT NULL
+     - `estado_nuevo`: TEXT NOT NULL
+     - `fecha_cambio`: TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+     - `responsable`: TEXT NOT NULL (Nombre o cargo del funcionario/veterinario del CBA)
+     - `observaciones`: TEXT NOT NULL
+
+---
+
+## 2. Reglas para el Sembrado de Datos (`seed_vetericano.py`)
+
+1. **Contexto Geográfico Real de Popayán**:
+   El sembrado debe incluir barrios reales asociados a sus comunas correctas:
+   - Comuna 1: El Recuerdo, Prados del Norte.
+   - Comuna 2: La Estancia, Bello Horizonte, Villa del Viento.
+   - Comuna 3: Pandiguando, An Andrés, Cadillal.
+   - Comuna 4: El Empedrado, La Pamba, Centro Histórico.
+   - Comuna 5: Los Sauces, Berlín, Alfonso López.
+   - Comuna 6: La Esmeralda, Loma de la Virgen.
+   - Comuna 7: Las Palmas, Tomás Cipriano.
+   - Comuna 8: Pandiguando Sur, El Mirador.
+   - Comuna 9: María Oriente, Julumito.
+2. **Contexto Animal del CBA Popayán**:
+   - Incluir casos de equinos (caballos carretilleros decomisados por sustitución de tracción animal o maltrato).
+   - Incluir caninos criollos y felinos de colonias urbanas.
+3. **Historial Completo**:
+   Cada solicitud sembrada debe tener su correspondiente secuencia en `HistorialEstado`. Si una solicitud está en `EN PROCESO`, debe tener 3 entradas en su historial:
+   - Inicial: `None` ➔ `RECIBIDA`
+   - Asignación: `RECIBIDA` ➔ `ASIGNADA`
+   - En curso: `ASIGNADA` ➔ `EN PROCESO`
+
+---
+
+## 3. Manejo de Conexiones y Transacciones
+
+- Emplea context managers (`with get_db() as conn:`) para garantizar `commit` automático o `rollback` en caso de error.
+- Provee métodos auxiliares para transformar filas de base de datos a diccionarios estándar serializables en JSON (`row_factory = sqlite3.Row`).
+
